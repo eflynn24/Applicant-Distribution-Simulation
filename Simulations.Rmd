@@ -1,0 +1,101 @@
+---
+title: "Simulations"
+output: pdf_document
+date: "2026-03-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goal: test data simulations
+
+## This script runs simulations on applicant data to determine most likely job title and city
+
+## Define simulation parameters
+```{r}
+
+library(tidyverse)
+
+Candidates <- read.csv("School_Front (3-30).csv")
+
+set.seed(123)
+runs <- 1000
+
+cities <- c("Canandaigua", "Rochester")
+
+jobs   <- c("Certified Positions (Misc)", "Assistant Principal",
+            "HR Assistant", "Teaching Assistant")
+
+n_candidates <- nrow(Candidates)
+
+```
+
+## Randomly assign a city and job to each candidate
+```{r}
+
+sim_results <- list()
+
+for (i in 1:runs) {
+
+assigned_city <- sample(cities, n_candidates, replace = TRUE)
+assigned_job  <- sample(jobs, n_candidates, replace = TRUE)
+
+ # Count how many candidates fall into each city/job combination
+  for (city in cities) {
+    for (job in jobs) {
+      count <- sum(assigned_city == city & assigned_job == job)
+      
+      sim_results[[length(sim_results) + 1]] <- data.frame(
+        Simulation = i,
+        City       = city,
+        Job        = job,
+        Count      = count
+      )
+    }
+  }
+}
+
+# Combine all results into a single data frame
+sim_results_df <- dplyr::bind_rows(sim_results)
+
+```
+
+## No loops option
+```{r}
+
+sim_list <- replicate(
+  runs,
+  {
+    assigned_city <- sample(cities, n_candidates, replace = TRUE)
+    assigned_job  <- sample(jobs, n_candidates, replace = TRUE)
+    as.data.frame(table(assigned_city, assigned_job))
+  },
+  simplify = FALSE
+)
+
+sim_results_df <- bind_rows(sim_list, .id = "Simulation")
+
+# Optional: rename columns for clarity
+sim_results_df <- sim_results_df %>%
+  rename(
+    City  = assigned_city,
+    Job   = assigned_job,
+    Count = Freq
+  )
+
+sim_results_df %>%
+  group_by(City, Job) %>%
+  summarise(Average_Count = mean(Count), .groups = "drop")
+
+```
+
+```{r}
+
+sim_results_df %>%
+  dplyr::group_by(City, Job) %>%
+  dplyr::summarise(Average_Count = mean(Count))
+
+```
+
+
