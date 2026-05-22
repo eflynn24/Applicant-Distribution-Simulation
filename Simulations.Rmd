@@ -8,31 +8,24 @@ date: "2026-03-31"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Goal: test data simulations
-
-## This script runs simulations on applicant data to determine most likely job title and city
+## Goal: This script runs simulations on applicant data to determine most likely job title and city
 
 ## Define simulation parameters
 ```{r}
 
 library(tidyverse)
-
-Candidates <- read.csv("School_Front (3-30).csv")
+Candidates <- read.csv("Applicant_Data.csv")
 
 set.seed(123)
 runs <- 1000
-
-cities <- c("Canandaigua", "Rochester")
-
-jobs   <- c("Certified Positions (Misc)", "Assistant Principal",
-            "HR Assistant", "Teaching Assistant")
-
+cities <- c()
+jobs   <- c()
 n_candidates <- nrow(Candidates)
 
 ```
 
-## Randomly assign a city and job to each candidate
 ```{r}
+## Randomly assign a city and job to each candidate
 
 sim_results <- list()
 
@@ -61,7 +54,6 @@ sim_results_df <- dplyr::bind_rows(sim_results)
 
 ```
 
-## No loops option
 ```{r}
 
 sim_list <- replicate(
@@ -76,7 +68,7 @@ sim_list <- replicate(
 
 sim_results_df <- bind_rows(sim_list, .id = "Simulation")
 
-# Optional: rename columns for clarity
+# Rename columns for clarity
 sim_results_df <- sim_results_df %>%
   rename(
     City  = assigned_city,
